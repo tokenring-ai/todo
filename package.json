@@ -1,0 +1,37 @@
+{
+  "name": "@tokenring-ai/todo",
+  "version": "0.2.0",
+  "description": "Todo list management for TokenRing agents",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsc --noEmit",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "tokenring",
+    "todo",
+    "task-management",
+    "ai"
+  ],
+  "author": "TokenRing",
+  "license": "MIT",
+  "dependencies": {
+    "@tokenring-ai/agent": "workspace:*",
+    "@tokenring-ai/app": "workspace:*",
+    "@tokenring-ai/chat": "workspace:*",
+    "@tokenring-ai/utility": "workspace:*",
+    "@tokenring-ai/lifecycle": "workspace:*",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.1",
+    "typescript": "^6.0.2"
+  },
+  "exports": {
+    ".": "./index.ts",
+    "./*": "./*.ts"
+  }
+}
