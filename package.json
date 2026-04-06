@@ -1,7 +1,7 @@
 {
   "name": "@tokenring-ai/todo",
   "version": "0.2.0",
-  "description": "Todo list management for TokenRing agents",
+  "description": "Persistent task management for agents to track priorities and project progress.",
   "type": "module",
   "main": "index.ts",
   "scripts": {
