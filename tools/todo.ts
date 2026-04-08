@@ -6,7 +6,7 @@ import {TodoState} from "../state/todoState.ts";
 import {formatTodoList} from "../util/todo.ts";
 
 const name = "todo";
-const displayName = "Agent/todo";
+const displayName = "Todo/todo";
 
 /**
  * Creates and manages a structured task list for the current coding session.
