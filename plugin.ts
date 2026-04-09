@@ -5,8 +5,8 @@ import {z} from "zod";
 import contextHandlers from "./contextHandlers.ts";
 import hooks from "./hooks.ts";
 import packageJSON from "./package.json" with {type: "json"};
-import TodoService from "./TodoService.ts";
 import {TodoConfigSchema} from "./schema.ts";
+import TodoService from "./TodoService.ts";
 import tools from "./tools.ts";
 
 const todoConfigSchema = z.object({
