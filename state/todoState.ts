@@ -1,11 +1,13 @@
-import {Agent} from "@tokenring-ai/agent";
+import type {Agent} from "@tokenring-ai/agent";
 import {AgentStateSlice} from "@tokenring-ai/agent/types";
 import {z} from "zod";
 import {type TodoConfig, type TodoItem, TodoItemSchema} from "../schema.ts";
 
-const serializationSchema = z.object({
-  todos: z.array(TodoItemSchema).default([])
-}).prefault({});
+const serializationSchema = z
+  .object({
+    todos: z.array(TodoItemSchema).default([]),
+  })
+  .prefault({});
 
 export class TodoState extends AgentStateSlice<typeof serializationSchema> {
   todos: TodoItem[] = [];
@@ -32,18 +34,16 @@ export class TodoState extends AgentStateSlice<typeof serializationSchema> {
   }
 
   deserialize(data: z.output<typeof serializationSchema>): void {
-    this.todos.splice(0, this.todos.length, ...data.todos || []);
+    this.todos.splice(0, this.todos.length, ...(data.todos || []));
   }
 
-  show(): string[] {
-    const pending = this.todos.filter(t => t.status === "pending").length;
-    const inProgress = this.todos.filter(t => t.status === "in_progress").length;
-    const completed = this.todos.filter(t => t.status === "completed").length;
-    return [
-      `Total: ${this.todos.length}`,
-      `Pending: ${pending}`,
-      `In Progress: ${inProgress}`,
-      `Completed: ${completed}`,
-    ];
+  show(): string {
+    const pending = this.todos.filter((t) => t.status === "pending").length;
+    const inProgress = this.todos.filter((t) => t.status === "in_progress").length;
+    const completed = this.todos.filter((t) => t.status === "completed").length;
+    return `Total: ${this.todos.length}
+Pending: ${pending}
+In Progress: ${inProgress}
+Completed: ${completed}`;
   }
 }

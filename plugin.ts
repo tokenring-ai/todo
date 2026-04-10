@@ -1,4 +1,4 @@
-import {TokenRingPlugin} from "@tokenring-ai/app";
+import type {TokenRingPlugin} from "@tokenring-ai/app";
 import {ChatService} from "@tokenring-ai/chat";
 import {AgentLifecycleService} from "@tokenring-ai/lifecycle";
 import {z} from "zod";
@@ -10,7 +10,7 @@ import TodoService from "./TodoService.ts";
 import tools from "./tools.ts";
 
 const todoConfigSchema = z.object({
-  todo: TodoConfigSchema
+  todo: TodoConfigSchema,
 });
 
 export default {
@@ -21,17 +21,17 @@ export default {
   install(app, config) {
     // Add services
     app.addServices(new TodoService(config.todo));
-    
+
     // Register tools
-    app.waitForService(ChatService, chatService => {
+    app.waitForService(ChatService, (chatService) => {
       chatService.addTools(tools);
       chatService.registerContextHandlers(contextHandlers);
     });
 
     // Register hooks with the lifecycle service
-    app.waitForService(AgentLifecycleService, lifecycleService => {
+    app.waitForService(AgentLifecycleService, (lifecycleService) => {
       lifecycleService.addHooks(hooks);
     });
   },
-  config: todoConfigSchema
+  config: todoConfigSchema,
 } satisfies TokenRingPlugin<typeof todoConfigSchema>;

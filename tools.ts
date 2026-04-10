@@ -1,4 +1,4 @@
-import todoManage from './tools/todo.ts';
+import todoManage from "./tools/todo.ts";
 
 export default {
   todoManage,
