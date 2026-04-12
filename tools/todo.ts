@@ -1,5 +1,5 @@
 import type {Agent} from "@tokenring-ai/agent";
-import type {TokenRingToolDefinition, TokenRingToolResult,} from "@tokenring-ai/chat/schema";
+import type {TokenRingToolDefinition, TokenRingToolResult} from "@tokenring-ai/chat/schema";
 import markdownList from "@tokenring-ai/utility/string/markdownList";
 import {z} from "zod";
 import {TodoState} from "../state/todoState.ts";
@@ -51,12 +51,12 @@ export function execute(
   }
 
   agent.infoMessage(
-    `Todo list updated! Current Todo list:\n ${renderedTodoList}`,
+    `Todo list updated! Current Todo list:\n${renderedTodoList}`,
   );
 
   const todoList = formatTodoList(updatedTodos);
 
-  return `Todo list updated! Current Todo list:\n ${todoList}`;
+  return `Todo list updated! Current Todo list:\n${todoList}`;
 }
 
 const description =
