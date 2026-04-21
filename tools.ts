@@ -1,5 +1,3 @@
 import todoManage from "./tools/todo.ts";
 
-export default [
-  todoManage,
-];
+export default [todoManage];

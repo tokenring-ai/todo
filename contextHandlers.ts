@@ -1,4 +1,4 @@
-import type {ContextHandler} from "@tokenring-ai/chat/schema";
+import type { ContextHandler } from "@tokenring-ai/chat/schema";
 import todoContext from "./contextHandlers/todo.ts";
 
 export default {

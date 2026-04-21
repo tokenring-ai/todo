@@ -1,4 +1,4 @@
-import {z} from "zod";
+import { z } from "zod";
 
 export const TodoStatusSchema = z.enum(["pending", "in_progress", "completed"]);
 export const TodoItemSchema = z.object({
@@ -10,8 +10,8 @@ export type TodoItem = z.infer<typeof TodoItemSchema>;
 
 export const TodoAgentConfigSchema = z
   .object({
-    copyToChild: z.boolean().optional(),
-    initialItems: z.array(TodoItemSchema).optional(),
+    copyToChild: z.boolean().exactOptional(),
+    initialItems: z.array(TodoItemSchema).exactOptional(),
   })
   .prefault({});
 

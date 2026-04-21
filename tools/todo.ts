@@ -1,9 +1,9 @@
-import type {Agent} from "@tokenring-ai/agent";
-import type {TokenRingToolDefinition, TokenRingToolResult} from "@tokenring-ai/chat/schema";
+import type { Agent } from "@tokenring-ai/agent";
+import type { TokenRingToolDefinition, TokenRingToolResult } from "@tokenring-ai/chat/schema";
 import markdownList from "@tokenring-ai/utility/string/markdownList";
-import {z} from "zod";
-import {TodoState} from "../state/todoState.ts";
-import {formatTodoList} from "../util/todo.ts";
+import { z } from "zod";
+import { TodoState } from "../state/todoState.ts";
+import { formatTodoList } from "../util/todo.ts";
 
 const name = "todo";
 const displayName = "Todo/todo";
@@ -12,15 +12,12 @@ const displayName = "Todo/todo";
  * Creates and manages a structured task list for the current coding session.
  * This helps track progress, organize complex tasks, and demonstrate thoroughness to the user.
  */
-export function execute(
-  {todos}: z.output<typeof inputSchema>,
-  agent: Agent,
-): TokenRingToolResult {
+export function execute({ todos }: z.output<typeof inputSchema>, agent: Agent): TokenRingToolResult {
   // Get the current todo list from the agent's state
-  const updatedTodos = agent.mutateState(TodoState, (state) => {
+  const updatedTodos = agent.mutateState(TodoState, state => {
     // Update todos based on the input
     for (const todo of todos) {
-      const existingIndex = state.todos.findIndex((t) => t.id === todo.id);
+      const existingIndex = state.todos.findIndex(t => t.id === todo.id);
       if (existingIndex !== -1) {
         // Update existing todo
         state.todos[existingIndex] = todo;
@@ -33,26 +30,20 @@ export function execute(
   });
 
   const renderedTodoList = markdownList(
-    updatedTodos.map((todo) =>
-      todo.status === "completed"
-        ? `[X] ${todo.content}`
-        : `[ ] ${todo.content}${todo.status === "in_progress" ? " (in_progress)" : ""}`,
+    updatedTodos.map(todo =>
+      todo.status === "completed" ? `[X] ${todo.content}` : `[ ] ${todo.content}${todo.status === "in_progress" ? " (in_progress)" : ""}`,
     ),
   );
 
   if (updatedTodos.length > 0) {
-    const currentTask =
-      updatedTodos.find((t) => t.status === "in_progress") ??
-      updatedTodos.find((t) => t.status === "pending");
+    const currentTask = updatedTodos.find(t => t.status === "in_progress") ?? updatedTodos.find(t => t.status === "pending");
 
     if (currentTask) {
       agent.setCurrentActivity(currentTask.content);
     }
   }
 
-  agent.infoMessage(
-    `Todo list updated! Current Todo list:\n${renderedTodoList}`,
-  );
+  agent.infoMessage(`Todo list updated! Current Todo list:\n${renderedTodoList}`);
 
   const todoList = formatTodoList(updatedTodos);
 
@@ -75,13 +66,8 @@ const inputSchema = z.object({
     .array(
       z.object({
         id: z.string().describe("Unique identifier for the task"),
-        content: z
-          .string()
-          .min(1)
-          .describe("The task description - what needs to be done"),
-        status: z
-          .enum(["pending", "in_progress", "completed"])
-          .describe("Current status of the task"),
+        content: z.string().min(1).describe("The task description - what needs to be done"),
+        status: z.enum(["pending", "in_progress", "completed"]).describe("Current status of the task"),
       }),
     )
     .describe("The updated todo list"),

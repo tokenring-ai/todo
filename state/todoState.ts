@@ -1,7 +1,7 @@
-import type {Agent} from "@tokenring-ai/agent";
-import {AgentStateSlice} from "@tokenring-ai/agent/types";
-import {z} from "zod";
-import {type TodoConfig, type TodoItem, TodoItemSchema} from "../schema.ts";
+import type { Agent } from "@tokenring-ai/agent";
+import { AgentStateSlice } from "@tokenring-ai/agent/types";
+import { z } from "zod";
+import { type TodoConfig, type TodoItem, TodoItemSchema } from "../schema.ts";
 
 const serializationSchema = z
   .object({
@@ -20,7 +20,7 @@ export class TodoState extends AgentStateSlice<typeof serializationSchema> {
   }
 
   transferStateFromParent(parentAgent: Agent) {
-    const {copyToChild} = parentAgent.getState(TodoState).initialConfig;
+    const { copyToChild } = parentAgent.getState(TodoState).initialConfig;
     if (copyToChild) {
       const parentTodos = parentAgent.getState(TodoState).todos;
       this.todos = [...parentTodos];
@@ -38,9 +38,9 @@ export class TodoState extends AgentStateSlice<typeof serializationSchema> {
   }
 
   show(): string {
-    const pending = this.todos.filter((t) => t.status === "pending").length;
-    const inProgress = this.todos.filter((t) => t.status === "in_progress").length;
-    const completed = this.todos.filter((t) => t.status === "completed").length;
+    const pending = this.todos.filter(t => t.status === "pending").length;
+    const inProgress = this.todos.filter(t => t.status === "in_progress").length;
+    const completed = this.todos.filter(t => t.status === "completed").length;
     return `Total: ${this.todos.length}
 Pending: ${pending}
 In Progress: ${inProgress}
