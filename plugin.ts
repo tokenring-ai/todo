@@ -3,7 +3,7 @@ import { ChatService } from "@tokenring-ai/chat";
 import { AgentLifecycleService } from "@tokenring-ai/lifecycle";
 import { z } from "zod";
 import contextHandlers from "./contextHandlers.ts";
-import hooks from "./hooks.ts";
+import todoCompletionCheck from "./hooks/todoCompletionCheck.ts";
 import packageJSON from "./package.json" with { type: "json" };
 import { TodoConfigSchema } from "./schema.ts";
 import TodoService from "./TodoService.ts";
@@ -30,7 +30,7 @@ export default {
 
     // Register hooks with the lifecycle service
     app.waitForService(AgentLifecycleService, lifecycleService => {
-      lifecycleService.addHooks(hooks);
+      lifecycleService.addHooks(todoCompletionCheck);
     });
   },
   config: todoConfigSchema,
