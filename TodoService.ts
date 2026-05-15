@@ -1,6 +1,6 @@
 import type { Agent } from "@tokenring-ai/agent";
 import type { TokenRingService } from "@tokenring-ai/app/types";
-import deepMerge from "@tokenring-ai/utility/object/deepMerge";
+import deepClone from "@tokenring-ai/utility/object/deepClone";
 import type { z } from "zod";
 import { TodoAgentConfigSchema, type TodoConfigSchema } from "./schema.ts";
 import { TodoState } from "./state/todoState.ts";
@@ -16,7 +16,7 @@ export default class TodoService implements TokenRingService {
 
   attach(agent: Agent) {
     // Merge service defaults with agent-specific config
-    const config = deepMerge(this.options.agentDefaults, agent.getAgentConfigSlice("todo", TodoAgentConfigSchema));
+    const config = deepClone(this.options.agentDefaults, agent.getAgentConfigSlice("todo", TodoAgentConfigSchema));
 
     // Initialize state
     agent.initializeState(TodoState, config);

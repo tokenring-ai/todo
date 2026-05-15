@@ -1,5 +1,6 @@
 import type { Agent } from "@tokenring-ai/agent";
 import { AgentStateSlice } from "@tokenring-ai/agent/types";
+import deepClone from "@tokenring-ai/utility/object/deepClone";
 import { z } from "zod";
 import { type TodoConfig, type TodoItem, TodoItemSchema } from "../schema.ts";
 
@@ -15,7 +16,7 @@ export class TodoState extends AgentStateSlice<typeof serializationSchema> {
   constructor(readonly initialConfig: TodoConfig["agentDefaults"]) {
     super("TodoState", serializationSchema);
     if (initialConfig.initialItems) {
-      this.todos = [...initialConfig.initialItems];
+      this.todos = deepClone(initialConfig.initialItems);
     }
   }
 
@@ -23,7 +24,7 @@ export class TodoState extends AgentStateSlice<typeof serializationSchema> {
     const { copyToChild } = parentAgent.getState(TodoState).initialConfig;
     if (copyToChild) {
       const parentTodos = parentAgent.getState(TodoState).todos;
-      this.todos = [...parentTodos];
+      this.todos = deepClone(parentTodos);
     }
   }
 
