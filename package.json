@@ -24,7 +24,7 @@
     "@tokenring-ai/chat": "workspace:*",
     "@tokenring-ai/utility": "workspace:*",
     "@tokenring-ai/lifecycle": "workspace:*",
-    "zod": "^4.3.6"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "vitest": "^4.1.1",
