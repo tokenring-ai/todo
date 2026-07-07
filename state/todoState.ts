@@ -15,9 +15,7 @@ export class TodoState extends AgentStateSlice<typeof serializationSchema> {
 
   constructor(readonly initialConfig: TodoConfig["agentDefaults"]) {
     super("TodoState", serializationSchema);
-    if (initialConfig.initialItems) {
-      this.todos = deepClone(initialConfig.initialItems);
-    }
+    this.todos = deepClone(initialConfig.initialItems);
   }
 
   transferStateFromParent(parentAgent: Agent) {
@@ -35,7 +33,7 @@ export class TodoState extends AgentStateSlice<typeof serializationSchema> {
   }
 
   deserialize(data: z.output<typeof serializationSchema>): void {
-    this.todos.splice(0, this.todos.length, ...(data.todos || []));
+    this.todos.splice(0, this.todos.length, ...data.todos);
   }
 
   show(): string {

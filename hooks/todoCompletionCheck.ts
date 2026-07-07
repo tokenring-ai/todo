@@ -10,7 +10,7 @@ const callbacks = [
   new HookCallback(AfterAgentInputSuccess, (_data, agent) => {
     const todos = agent.getState(TodoState);
 
-    if (!todos?.todos || todos.todos.length === 0) {
+    if (todos.todos.length === 0) {
       return;
     }
 
@@ -51,4 +51,4 @@ export default {
   displayName,
   description,
   callbacks,
-} satisfies HookSubscription<any>;
+} satisfies HookSubscription;
