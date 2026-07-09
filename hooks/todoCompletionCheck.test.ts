@@ -49,7 +49,7 @@ describe("Todo Completion Check Hook", () => {
     });
 
     it("should have callback for AfterAgentInputSuccess", () => {
-      const callback = todoCompletionCheckHook.callbacks[0];
+      const callback = todoCompletionCheckHook.callbacks[0]!;
       expect(callback).toBeDefined();
       expect(callback.hookConstructor).toBe(AfterAgentInputSuccess);
     });
@@ -59,7 +59,7 @@ describe("Todo Completion Check Hook", () => {
     it("should do nothing when no todos exist", async () => {
       mockAgent.getState.mockReturnValue({ todos: [] });
 
-      const hook = todoCompletionCheckHook.callbacks[0];
+      const hook = todoCompletionCheckHook.callbacks[0]!;
       await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
 
       expect(mockAgent.infoMessage).not.toHaveBeenCalled();
@@ -69,7 +69,7 @@ describe("Todo Completion Check Hook", () => {
     it("should do nothing when todos state is null", async () => {
       mockAgent.getState.mockReturnValue(null);
 
-      const hook = todoCompletionCheckHook.callbacks[0];
+      const hook = todoCompletionCheckHook.callbacks[0]!;
       await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
 
       expect(mockAgent.infoMessage).not.toHaveBeenCalled();
@@ -79,7 +79,7 @@ describe("Todo Completion Check Hook", () => {
     it("should do nothing when todos is undefined", async () => {
       mockAgent.getState.mockReturnValue(undefined);
 
-      const hook = todoCompletionCheckHook.callbacks[0];
+      const hook = todoCompletionCheckHook.callbacks[0]!;
       await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
 
       expect(mockAgent.infoMessage).not.toHaveBeenCalled();
@@ -96,7 +96,7 @@ describe("Todo Completion Check Hook", () => {
         ]
       });
 
-      const hook = todoCompletionCheckHook.callbacks[0];
+      const hook = todoCompletionCheckHook.callbacks[0]!;
       await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
 
       // The infoMessage call for "All todos completed" is commented out in implementation
@@ -114,7 +114,7 @@ describe("Todo Completion Check Hook", () => {
         ]
       });
 
-      const hook = todoCompletionCheckHook.callbacks[0];
+      const hook = todoCompletionCheckHook.callbacks[0]!;
       await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
 
       expect(mockAgent.handleInput).toHaveBeenCalled();
@@ -132,7 +132,7 @@ describe("Todo Completion Check Hook", () => {
         ]
       });
 
-      const hook = todoCompletionCheckHook.callbacks[0];
+      const hook = todoCompletionCheckHook.callbacks[0]!;
       await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
 
       expect(mockAgent.handleInput).toHaveBeenCalled();
@@ -152,7 +152,7 @@ describe("Todo Completion Check Hook", () => {
         ]
       });
 
-      const hook = todoCompletionCheckHook.callbacks[0];
+      const hook = todoCompletionCheckHook.callbacks[0]!;
       await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
 
       expect(mockAgent.handleInput).toHaveBeenCalled();
@@ -174,7 +174,7 @@ describe("Todo Completion Check Hook", () => {
         ]
       });
 
-      const hook = todoCompletionCheckHook.callbacks[0];
+      const hook = todoCompletionCheckHook.callbacks[0]!;
       await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
 
       const message = mockAgent.handleInput.mock.calls[0][0].message;
@@ -188,7 +188,7 @@ describe("Todo Completion Check Hook", () => {
         ]
       });
 
-      const hook = todoCompletionCheckHook.callbacks[0];
+      const hook = todoCompletionCheckHook.callbacks[0]!;
       await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
 
       const message = mockAgent.handleInput.mock.calls[0][0].message;
@@ -202,7 +202,7 @@ describe("Todo Completion Check Hook", () => {
         ]
       });
 
-      const hook = todoCompletionCheckHook.callbacks[0];
+      const hook = todoCompletionCheckHook.callbacks[0]!;
       await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
 
       const message = mockAgent.handleInput.mock.calls[0][0].message;
@@ -214,7 +214,7 @@ describe("Todo Completion Check Hook", () => {
     it("should handle empty todos array", async () => {
       mockAgent.getState.mockReturnValue({ todos: [] });
 
-      const hook = todoCompletionCheckHook.callbacks[0];
+      const hook = todoCompletionCheckHook.callbacks[0]!;
       await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
 
       expect(mockAgent.handleInput).not.toHaveBeenCalled();
@@ -229,7 +229,7 @@ describe("Todo Completion Check Hook", () => {
         ]
       });
 
-      const hook = todoCompletionCheckHook.callbacks[0];
+      const hook = todoCompletionCheckHook.callbacks[0]!;
       await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
 
       expect(mockAgent.handleInput).not.toHaveBeenCalled();
