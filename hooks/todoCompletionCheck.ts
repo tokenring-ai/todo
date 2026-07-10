@@ -10,7 +10,7 @@ const callbacks = [
   new HookCallback(AfterAgentInputSuccess, (_data, agent) => {
     const todos = agent.getState(TodoState);
 
-    if (todos.todos.length === 0) {
+    if (!todos.todos.length) {
       return;
     }
 

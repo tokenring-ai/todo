@@ -1,25 +1,24 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { AfterAgentInputSuccess } from "@tokenring-ai/lifecycle/util/hooks";
+import { afterEach,beforeEach,describe,expect,it,mock } from "bun:test";
 import todoCompletionCheckHook from "./todoCompletionCheck.ts";
 
 // Mock Agent
-const createMockAgent = () =>
-  ({
-    getState: mock(),
-    mutateState: mock(),
-    infoMessage: mock(),
-    errorMessage: mock(),
-    askQuestion: mock(),
-    handleInput: mock(),
-    id: "test-agent-id",
-    config: {
-      agentType: "test-agent-type",
-      todos: {
-        copyToChild: true,
-        initialItems: [],
-      },
-    },
-  }) as any;
+const createMockAgent = () => ({
+  getState: mock(),
+  mutateState: mock(),
+  infoMessage: mock(),
+  errorMessage: mock(),
+  askQuestion: mock(),
+  handleInput: mock(),
+  id: "test-agent-id",
+  config: {
+    agentType: "test-agent-type",
+    todos: {
+      copyToChild: true,
+      initialItems: [],
+    }
+  }
+} as any);
 
 describe("Todo Completion Check Hook", () => {
   let mockAgent: any;
@@ -66,6 +65,26 @@ describe("Todo Completion Check Hook", () => {
       expect(mockAgent.infoMessage).not.toHaveBeenCalled();
       expect(mockAgent.handleInput).not.toHaveBeenCalled();
     });
+
+    it("should do nothing when todos state is null", async () => {
+      mockAgent.getState.mockReturnValue(null);
+
+      const hook = todoCompletionCheckHook.callbacks[0]!;
+      await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
+
+      expect(mockAgent.infoMessage).not.toHaveBeenCalled();
+      expect(mockAgent.handleInput).not.toHaveBeenCalled();
+    });
+
+    it("should do nothing when todos is undefined", async () => {
+      mockAgent.getState.mockReturnValue(undefined);
+
+      const hook = todoCompletionCheckHook.callbacks[0]!;
+      await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
+
+      expect(mockAgent.infoMessage).not.toHaveBeenCalled();
+      expect(mockAgent.handleInput).not.toHaveBeenCalled();
+    });
   });
 
   describe("Hook Execution - All Todos Complete", () => {
@@ -73,8 +92,8 @@ describe("Todo Completion Check Hook", () => {
       mockAgent.getState.mockReturnValue({
         todos: [
           { id: "1", content: "Task 1", status: "completed" },
-          { id: "2", content: "Task 2", status: "completed" },
-        ],
+          { id: "2", content: "Task 2", status: "completed" }
+        ]
       });
 
       const hook = todoCompletionCheckHook.callbacks[0]!;
@@ -91,8 +110,8 @@ describe("Todo Completion Check Hook", () => {
       mockAgent.getState.mockReturnValue({
         todos: [
           { id: "1", content: "Task 1", status: "pending" },
-          { id: "2", content: "Task 2", status: "completed" },
-        ],
+          { id: "2", content: "Task 2", status: "completed" }
+        ]
       });
 
       const hook = todoCompletionCheckHook.callbacks[0]!;
@@ -109,8 +128,8 @@ describe("Todo Completion Check Hook", () => {
       mockAgent.getState.mockReturnValue({
         todos: [
           { id: "1", content: "Task 1", status: "in_progress" },
-          { id: "2", content: "Task 2", status: "completed" },
-        ],
+          { id: "2", content: "Task 2", status: "completed" }
+        ]
       });
 
       const hook = todoCompletionCheckHook.callbacks[0]!;
@@ -129,8 +148,8 @@ describe("Todo Completion Check Hook", () => {
           { id: "1", content: "Task 1", status: "pending" },
           { id: "2", content: "Task 2", status: "in_progress" },
           { id: "3", content: "Task 3", status: "pending" },
-          { id: "4", content: "Task 4", status: "completed" },
-        ],
+          { id: "4", content: "Task 4", status: "completed" }
+        ]
       });
 
       const hook = todoCompletionCheckHook.callbacks[0]!;
@@ -150,7 +169,9 @@ describe("Todo Completion Check Hook", () => {
   describe("Message Formatting", () => {
     it("should format pending todos with correct emoji", async () => {
       mockAgent.getState.mockReturnValue({
-        todos: [{ id: "1", content: "Pending task", status: "pending" }],
+        todos: [
+          { id: "1", content: "Pending task", status: "pending" }
+        ]
       });
 
       const hook = todoCompletionCheckHook.callbacks[0]!;
@@ -162,7 +183,9 @@ describe("Todo Completion Check Hook", () => {
 
     it("should format in_progress todos with correct emoji", async () => {
       mockAgent.getState.mockReturnValue({
-        todos: [{ id: "1", content: "In progress task", status: "in_progress" }],
+        todos: [
+          { id: "1", content: "In progress task", status: "in_progress" }
+        ]
       });
 
       const hook = todoCompletionCheckHook.callbacks[0]!;
@@ -174,7 +197,9 @@ describe("Todo Completion Check Hook", () => {
 
     it("should include instruction to complete tasks", async () => {
       mockAgent.getState.mockReturnValue({
-        todos: [{ id: "1", content: "Task 1", status: "pending" }],
+        todos: [
+          { id: "1", content: "Task 1", status: "pending" }
+        ]
       });
 
       const hook = todoCompletionCheckHook.callbacks[0]!;
@@ -200,8 +225,8 @@ describe("Todo Completion Check Hook", () => {
         todos: [
           { id: "1", content: "Task 1", status: "completed" },
           { id: "2", content: "Task 2", status: "completed" },
-          { id: "3", content: "Task 3", status: "completed" },
-        ],
+          { id: "3", content: "Task 3", status: "completed" }
+        ]
       });
 
       const hook = todoCompletionCheckHook.callbacks[0]!;
