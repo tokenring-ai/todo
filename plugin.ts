@@ -1,10 +1,12 @@
 import type { TokenRingPlugin } from "@tokenring-ai/app";
 import { ChatService } from "@tokenring-ai/chat";
 import { AgentLifecycleService } from "@tokenring-ai/lifecycle";
+import { RpcService } from "@tokenring-ai/rpc";
 import { z } from "zod";
 import contextHandlers from "./contextHandlers.ts";
 import todoCompletionCheck from "./hooks/todoCompletionCheck.ts";
 import packageJSON from "./package.json" with { type: "json" };
+import todoRPC from "./rpc/todo.ts";
 import { TodoConfigSchema } from "./schema.ts";
 import TodoService from "./TodoService.ts";
 import tools from "./tools.ts";
@@ -31,6 +33,10 @@ export default {
     // Register hooks with the lifecycle service
     app.waitForService(AgentLifecycleService, lifecycleService => {
       lifecycleService.addHooks(todoCompletionCheck);
+    });
+
+    app.waitForService(RpcService, rpcService => {
+      rpcService.registerEndpoint(todoRPC);
     });
   },
   config: todoConfigSchema,

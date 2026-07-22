@@ -1,6 +1,5 @@
 import type { Agent } from "@tokenring-ai/agent";
 import type { TokenRingToolDefinition, TokenRingToolResult } from "@tokenring-ai/chat/schema";
-import markdownList from "@tokenring-ai/utility/string/markdownList";
 import { z } from "zod";
 import { TodoState } from "../state/todoState.ts";
 import { formatTodoList } from "../util/todo.ts";
@@ -29,12 +28,6 @@ export function execute({ todos }: z.output<typeof inputSchema>, agent: Agent): 
     return state.todos;
   });
 
-  const renderedTodoList = markdownList(
-    updatedTodos.map(todo =>
-      todo.status === "completed" ? `[X] ${todo.content}` : `[ ] ${todo.content}${todo.status === "in_progress" ? " (in_progress)" : ""}`,
-    ),
-  );
-
   if (updatedTodos.length > 0) {
     const currentTask = updatedTodos.find(t => t.status === "in_progress") ?? updatedTodos.find(t => t.status === "pending");
 
@@ -43,11 +36,12 @@ export function execute({ todos }: z.output<typeof inputSchema>, agent: Agent): 
     }
   }
 
-  agent.infoMessage(`Todo list updated! Current Todo list:\n${renderedTodoList}`);
-
   const todoList = formatTodoList(updatedTodos);
 
-  return `Todo list updated! Current Todo list:\n${todoList}`;
+  return {
+    message: `**Todo** Updated todo list`,
+    result: `Todo list updated! Current Todo list:\n${todoList}`,
+  };
 }
 
 const description =

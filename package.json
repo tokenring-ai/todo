@@ -22,8 +22,9 @@
     "@tokenring-ai/agent": "workspace:*",
     "@tokenring-ai/app": "workspace:*",
     "@tokenring-ai/chat": "workspace:*",
-    "@tokenring-ai/utility": "workspace:*",
     "@tokenring-ai/lifecycle": "workspace:*",
+    "@tokenring-ai/rpc": "workspace:*",
+    "@tokenring-ai/utility": "workspace:*",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -31,6 +32,7 @@
   },
   "exports": {
     ".": "./index.ts",
-    "./*": "./*.ts"
+    "./*": "./*.ts",
+    "./rpc/schema": "./rpc/schema.ts"
   }
 }
