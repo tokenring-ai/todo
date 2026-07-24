@@ -1,5 +1,6 @@
 import type { HookSubscription } from "@tokenring-ai/lifecycle/types";
 import { AfterAgentInputSuccess, HookCallback } from "@tokenring-ai/lifecycle/util/hooks";
+import markdownList from "@tokenring-ai/utility/string/markdownList";
 import { TodoState } from "../state/todoState.ts";
 
 const name = "todoCompletionCheck";
@@ -10,41 +11,32 @@ const callbacks = [
   new HookCallback(AfterAgentInputSuccess, (_data, agent) => {
     const todos = agent.getState(TodoState);
 
-    if (!todos.todos.length) {
-      return;
-    }
+    if (!todos.todos.length) return;
 
     // Check for incomplete todos
     const incompleteTodos = todos.todos.filter(todo => todo.status === "pending" || todo.status === "in_progress");
 
-    if (incompleteTodos.length === 0) {
-      // All todos are complete
-      //agent.infoMessage("✅ All todos completed!");
-      return;
-    }
+    if (incompleteTodos.length === 0) return;
 
-    // There are incomplete todos - inform the agent
-    const pendingCount = incompleteTodos.filter(t => t.status === "pending").length;
-    const inProgressCount = incompleteTodos.filter(t => t.status === "in_progress").length;
-
-    const message =
-      `📋 **${incompleteTodos.length} remaining task(s)** detected:\n` +
-      `${pendingCount} pending, ${inProgressCount} in progress\n\n` +
-      "Please complete the remaining tasks on your todo list.\n\n" +
-      formatIncompleteTodos(incompleteTodos);
+    const message = `**AUTOMATED SYSTEM MESSAGE**
+ **${incompleteTodos.length} tasks were left on the TODO list that are still marked as incomplete.
+ ${markdownList(
+   incompleteTodos.map(todo => `${todo.id}: ${todo.content}`),
+   2,
+ )}
+ 
+ You need to do one of the following two things for each of the pending or in progress tasks to resolve this:
+ 1. Complete the task and mark it as done.
+ 2. Mark the task as cancelled if you determined that the task is no longer relevant or completable.
+ 
+ It is OK or even preferable to mark a task as cancelled if you determined that the task is no longer relevant, not completable, is unsafe, or would require further user feedback 
+ 
+ This message will repeat until all tasks are completed or cancelled.
+ `;
 
     agent.handleInput({ from: "Todo Completion Check Hook", message });
   }),
 ];
-
-function formatIncompleteTodos(todos: Array<{ id: string; content: string; status: string }>): string {
-  return todos
-    .map(todo => {
-      const status = todo.status === "in_progress" ? "🔄" : "📝";
-      return `- ${status} ${todo.id}: ${todo.content}`;
-    })
-    .join("\n");
-}
 
 export default {
   name,

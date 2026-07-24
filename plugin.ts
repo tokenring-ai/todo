@@ -39,5 +39,5 @@ export default {
       rpcService.registerEndpoint(todoRPC);
     });
   },
-  config: todoConfigSchema,
+  configSchema: todoConfigSchema,
 } satisfies TokenRingPlugin<typeof todoConfigSchema>;

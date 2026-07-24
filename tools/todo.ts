@@ -1,6 +1,7 @@
 import type { Agent } from "@tokenring-ai/agent";
 import type { TokenRingToolDefinition, TokenRingToolResult } from "@tokenring-ai/chat/schema";
 import { z } from "zod";
+import { TodoStatusSchema } from "../schema.ts";
 import { TodoState } from "../state/todoState.ts";
 import { formatTodoList } from "../util/todo.ts";
 
@@ -12,6 +13,9 @@ const displayName = "Todo/todo";
  * This helps track progress, organize complex tasks, and demonstrate thoroughness to the user.
  */
 export function execute({ todos }: z.output<typeof inputSchema>, agent: Agent): TokenRingToolResult {
+  let newCount = 0;
+  let updatedCount = 0;
+
   // Get the current todo list from the agent's state
   const updatedTodos = agent.mutateState(TodoState, state => {
     // Update todos based on the input
@@ -20,9 +24,11 @@ export function execute({ todos }: z.output<typeof inputSchema>, agent: Agent): 
       if (existingIndex !== -1) {
         // Update existing todo
         state.todos[existingIndex] = todo;
+        updatedCount++;
       } else {
         // Add new todo
         state.todos.push(todo);
+        newCount++;
       }
     }
     return state.todos;
@@ -39,7 +45,7 @@ export function execute({ todos }: z.output<typeof inputSchema>, agent: Agent): 
   const todoList = formatTodoList(updatedTodos);
 
   return {
-    message: `**Todo** Updated todo list`,
+    message: `**Todo** Updated todo list (${newCount} new, ${updatedCount} existing)`,
     result: `Todo list updated! Current Todo list:\n${todoList}`,
   };
 }
@@ -61,7 +67,7 @@ const inputSchema = z.object({
       z.object({
         id: z.string().describe("Unique identifier for the task"),
         content: z.string().min(1).describe("The task description - what needs to be done"),
-        status: z.enum(["pending", "in_progress", "completed"]).describe("Current status of the task"),
+        status: TodoStatusSchema.describe("Current status of the task"),
       }),
     )
     .describe("The updated todo list"),

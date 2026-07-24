@@ -1,7 +1,9 @@
 import type { ConfigFieldMeta } from "@tokenring-ai/app/config/metadata";
 import { z } from "zod";
 
-export const TodoStatusSchema = z.enum(["pending", "in_progress", "completed"]);
+export const TodoStatusSchema = z.enum(["pending", "in_progress", "completed", "cancelled"]);
+export type TodoStatus = z.infer<typeof TodoStatusSchema>;
+
 export const TodoItemSchema = z.object({
   id: z.string(),
   content: z.string(),
