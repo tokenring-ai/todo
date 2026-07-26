@@ -10,11 +10,12 @@ agents to create, track, and manage tasks with status tracking and persistent st
 ### Key Features
 
 - **Task Management**: Create, update, complete, and delete todo items
-- **Status Tracking**: Track tasks with `pending`, `in_progress`, and `completed` statuses
+- **Status Tracking**: Track tasks with `pending`, `in_progress`, `completed`, and `cancelled` statuses
 - **Persistent State**: Todos persist across agent sessions via state storage
 - **Agent Context**: Automatic todo list context injection into chat sessions
 - **Completion Hooks**: Automatic reminders for incomplete tasks after agent responses
 - **Parent-Child Transfer**: Optional todo copying from parent to child agents
+- **RPC Endpoints**: Query and stream todo state via RPC interface
 
 ## Installation
 
@@ -28,11 +29,11 @@ bun add @tokenring-ai/todo
 
 Manages todo items for task organization and progress tracking.
 
-| Property                      | Description |
-|-------------------------------|-------------|
-| **Name**                      | `todo`      |
-| **Display Name**              | `Todo/todo` |
-| **Required Context Handlers** | `todo-list` |
+| Property                      | Description     |
+|-------------------------------|-----------------|
+| **Name**                      | `todo`          |
+| **Display Name**              | `Todo/todo`     |
+| **Required Context Handlers** | `todo-list`     |
 
 #### Description
 
@@ -61,8 +62,8 @@ tasks, track progress, and to convey the current task plan to the user.
 {
   todos: Array<{
     id: string;           // Unique identifier for the task
-    content: string;      // The task description - what needs to be done
-    status: "pending" | "in_progress" | "completed";  // Current status of the task
+    content: string;      // The task description - what needs to be done (min length: 1)
+    status: "pending" | "in_progress" | "completed" | "cancelled";  // Current status of the task
   }>;
 }
 ```
@@ -88,7 +89,16 @@ tasks, track progress, and to convey the current task plan to the user.
 
 #### Output
 
-Returns the updated todo list in a formatted string showing ID, status emoji, and content.
+Returns a `TokenRingToolResult` with the following properties:
+
+| Property  | Type     | Description                                              |
+|-----------|----------|----------------------------------------------------------|
+| `message` | `string` | Summary message with new and updated item counts         |
+| `actions` | `string[]` | Array of action descriptions for each update or new item |
+| `result`  | `string` | Formatted todo list string                               |
+
+The tool also updates the agent's current activity to reflect the first
+`in_progress` or `pending` task.
 
 ## Context Handlers
 
@@ -109,49 +119,51 @@ ID: STATUS CONTENT
 
 **Status Emojis**:
 
-- `📝` - Pending
+- `📝` - Pending (also used for `cancelled`)
 - `🔄` - In Progress
 - `✅` - Completed
 
 ## Hooks
 
-### `todoCompletionCheck`
+### `todoCompletionCheck` Hook
 
 Automatically checks for incomplete todos after successful agent responses.
 
-| Property         | Value                                                                                               |
-|------------------|-----------------------------------------------------------------------------------------------------|
-| **Name**         | `todoCompletionCheck`                                                                               |
-| **Display Name** | `Todo/Completion Check`                                                                             |
+| Property         | Value                                                                        |
+|------------------|------------------------------------------------------------------------------|
+| **Name**         | `todoCompletionCheck`                                                        |
+| **Display Name** | `Todo/Completion Check`                                                      |
 | **Description**  | Checks if todos are complete at the end of a successful chat and prompts to complete remaining work |
 
 #### Hook Subscription
 
 - **Hook**: `AfterAgentInputSuccess`
 - **Trigger**: After successful agent input completion
+- **Executed By**: `AgentLifecycleService`
 
 #### Behavior
 
 1. Retrieves current todo state from the agent
-2. Filters for incomplete todos (`pending` or `in_progress` status)
-3. If incomplete todos exist:
-
-- Counts pending and in-progress tasks
-- Formats a reminder message with task details
-- Triggers agent input with the reminder
-
-4. If all todos are complete: No action taken
+2. Returns early if no todos exist
+3. Filters for incomplete todos (`pending` or `in_progress` status)
+4. Returns early if all todos are completed or cancelled
+5. If incomplete todos exist, triggers agent input with an automated system message
 
 #### Reminder Message Format
 
 ```text
-📋 **N remaining task(s)** detected:
-X pending, Y in progress
+**AUTOMATED SYSTEM MESSAGE**
+ **N tasks were left on the TODO list that are still marked as incomplete.
+ - id-1: Task content
+ - id-2: Task content
 
-Please complete the remaining tasks on your todo list.
+ You need to do one of the following two things for each of the pending or in progress tasks to resolve this:
+ 1. Complete the task and mark it as done.
+ 2. Mark the task as cancelled if you determined that the task is no longer relevant or completable.
 
-- 📝 id: Task content
-- 🔄 id: Task content
+ It is OK or even preferable to mark a task as cancelled if you determined that the task is no longer relevant, not completable, is unsafe, or would require further user feedback
+
+ This message will repeat until all tasks are completed or cancelled.
 ```
 
 ## Configuration
@@ -177,12 +189,22 @@ todo:
       initialItems: Array<{
         id: string;
         content: string;
-        status: "pending" | "in_progress" | "completed";
+        status: "pending" | "in_progress" | "completed" | "cancelled";
       }>;  // Initial todos for new agents (default: [])
     };
   };
 }
 ```
+
+### Schema Metadata
+
+The configuration schema includes metadata annotations for UI integration:
+
+| Field         | Label          | Description                                                        | Advanced |
+|---------------|----------------|--------------------------------------------------------------------|----------|
+| `agentDefaults` | `Agent Defaults` | -                                                                  | -        |
+| `copyToChild` | -              | Copy the parent agent's todo list to newly spawned sub-agents      | -        |
+| `initialItems`| -              | Todo items pre-populated for new agents                            | Yes      |
 
 ### Example Configuration
 
@@ -197,7 +219,6 @@ const app = new TokenRingApp({
   config: {
     todo: {
       agentDefaults: {
-        enabled: true,
         copyToChild: true,
         initialItems: [
           {
@@ -225,11 +246,11 @@ The main service for todo management.
 
 #### TodoService Properties
 
-| Property      | Type            | Description           |
-|---------------|-----------------|-----------------------|
-| `name`        | `"TodoService"` | Service identifier    |
-| `description` | `string`        | Service description   |
-| `options`     | `TodoConfig`    | Service configuration |
+| Property      | Type            | Description                                    |
+|---------------|-----------------|------------------------------------------------|
+| `name`        | `"TodoService"` | Service identifier                             |
+| `description` | `string`        | Manages todo lists for agents with add, complete, delete, and list operations |
+| `options`     | `TodoConfig`    | Service configuration                          |
 
 #### TodoService Methods
 
@@ -243,7 +264,7 @@ Attaches the service to an agent and initializes state.
 
 **Behavior:**
 
-1. Merges service defaults with agent-specific configuration
+1. Merges service defaults with agent-specific configuration using `deepClone`
 2. Initializes `TodoState` with the merged configuration
 3. Sets up todo persistence for the agent
 
@@ -262,7 +283,8 @@ State slice for managing todo persistence.
 
 ##### `transferStateFromParent(parentAgent: Agent)`
 
-Transfers todos from parent agent if `copyToChild` is enabled.
+Transfers todos from parent agent if `copyToChild` is enabled in the parent's
+configuration. Only copies if the child has no value set.
 
 ##### `serialize()`
 
@@ -270,7 +292,7 @@ Serializes todos for persistence.
 
 ##### `deserialize(data)`
 
-Deserializes todos from persisted data.
+Deserializes todos from persisted data using `splice` to replace the array contents.
 
 ##### `show()`
 
@@ -283,12 +305,59 @@ In Progress: Y
 Completed: Z
 ```
 
+### RPC Endpoints
+
+The plugin registers an RPC endpoint at `/rpc/todo` with the following methods:
+
+| Method       | Type     | Description                        |
+|--------------|----------|------------------------------------|
+| `getTodos`   | `query`  | Retrieve the current todo list for an agent |
+| `streamTodos`| `stream` | Stream todo list updates for an agent  |
+
+#### `getTodos`
+
+Retrieves the current todo list for a specified agent.
+
+**Input:**
+
+```typescript
+{
+  agentId: string;
+}
+```
+
+**Result (Discriminated union on `status`):**
+
+| Status            | Fields                    | Description              |
+|-------------------|---------------------------|--------------------------|
+| `success`         | `todos: TodoItem[]`       | Todo list retrieved      |
+| `agentNotFound`   | -                         | Agent does not exist     |
+
+#### `streamTodos`
+
+Streams todo list updates for a specified agent using an async generator.
+
+**Input:**
+
+```typescript
+{
+  agentId: string;
+}
+```
+
+**Result (Discriminated union on `status`):**
+
+| Status            | Fields                    | Description              |
+|-------------------|---------------------------|--------------------------|
+| `success`         | `todos: TodoItem[]`       | Todo list data chunk     |
+| `agentNotFound`   | -                         | Agent does not exist     |
+
 ### Schema Exports
 
 #### `TodoStatusSchema`
 
 ```typescript
-z.enum(["pending", "in_progress", "completed"]);
+z.enum(["pending", "in_progress", "completed", "cancelled"]);
 ```
 
 #### `TodoItemSchema`
@@ -301,12 +370,12 @@ z.object({
 });
 ```
 
-#### `TodoAgentConfigSchema`
+#### `TodoAgentSchema`
 
 ```typescript
 z.object({
-  copyToChild: z.boolean().optional(),
-  initialItems: z.array(TodoItemSchema).optional(),
+  copyToChild: z.boolean().exactOptional(),
+  initialItems: z.array(TodoItemSchema).exactOptional(),
 }).prefault({});
 ```
 
@@ -321,6 +390,67 @@ z.object({
 }).prefault({});
 ```
 
+### Utility Functions
+
+#### `formatTodoList(todos: TodoItem[]): string`
+
+**Location**: `util/todo.ts`
+
+Formats a todo list for display to the LLM. Returns a string with a header
+row followed by one line per todo item, using status emojis.
+
+**Example:**
+
+```typescript
+import { formatTodoList } from "@tokenring-ai/todo/util/todo";
+
+const formatted = formatTodoList([
+  { id: "1", content: "Task 1", status: "pending" },
+  { id: "2", content: "Task 2", status: "in_progress" },
+]);
+
+// Output:
+// "ID: STATUS CONTENT\n1: 📝 Task 1\n2: 🔄 Task 2"
+```
+
+### Lifecycle Hooks
+
+#### `todoCompletionCheck` Hook Subscription
+
+**Location**: `hooks/todoCompletionCheck.ts`
+
+A hook subscription that checks for incomplete todos after successful agent
+input.
+
+**Constructor**: None (exported as a default object)
+
+**Properties:**
+
+| Property      | Value                                                                        |
+|---------------|------------------------------------------------------------------------------|
+| `name`        | `todoCompletionCheck`                                                        |
+| `displayName` | `Todo/Completion Check`                                                      |
+| `description` | Checks if todos are complete at the end of a successful chat and prompts to complete remaining work |
+| `callbacks`   | Array of `HookCallback` instances                                            |
+
+**Trigger**: Executed by `AgentLifecycleService` when `AfterAgentInputSuccess`
+hook fires.
+
+**Callback Parameters:**
+
+- `_data`: `AfterAgentInputSuccess` instance (unused)
+- `agent`: The agent instance
+
+### State Management
+
+The `TodoState` class maintains persistent state per agent:
+
+- **State Properties**: `todos` (array of `TodoItem`)
+- **Serialization**: Implemented via `serialize()` and `deserialize()` methods
+- **State Inheritance**: `transferStateFromParent` copies todos from parent agent
+  when `copyToChild` is enabled in the parent's configuration
+- **Initialization**: State is initialized with `initialItems` from configuration
+
 ## Testing
 
 ```bash
@@ -334,6 +464,12 @@ bun run test:watch
 bun run test --coverage
 ```
 
+### Test Files
+
+| File                                      | Description                              |
+|-------------------------------------------|------------------------------------------|
+| `hooks/todoCompletionCheck.test.ts`       | Tests for the todo completion check hook |
+
 ### Test Coverage
 
 The package includes comprehensive tests for the `todoCompletionCheck` hook covering:
@@ -344,7 +480,7 @@ The package includes comprehensive tests for the `todoCompletionCheck` hook cove
 - Pending todos notification
 - In-progress todos notification
 - Multiple incomplete todos
-- Message formatting with emojis
+- Message formatting
 - Edge cases
 
 ## License

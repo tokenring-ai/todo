@@ -13,22 +13,32 @@ const displayName = "Todo/todo";
  * This helps track progress, organize complex tasks, and demonstrate thoroughness to the user.
  */
 export function execute({ todos }: z.output<typeof inputSchema>, agent: Agent): TokenRingToolResult {
-  let newCount = 0;
-  let updatedCount = 0;
+  const newTexts: string[] = [];
+  const updateTexts: string[] = [];
 
   // Get the current todo list from the agent's state
   const updatedTodos = agent.mutateState(TodoState, state => {
     // Update todos based on the input
     for (const todo of todos) {
-      const existingIndex = state.todos.findIndex(t => t.id === todo.id);
-      if (existingIndex !== -1) {
-        // Update existing todo
-        state.todos[existingIndex] = todo;
-        updatedCount++;
+      const existingTodo = state.todos.find(t => t.id === todo.id);
+      if (existingTodo) {
+        let updated = false;
+        let updateText = `Update ${existingTodo.content} `;
+        if (todo.status !== existingTodo.status) {
+          updated = true;
+          updateText += `from ${existingTodo.status} to ${todo.status}`;
+          existingTodo.status = todo.status;
+        }
+        if (todo.content !== existingTodo.content) {
+          updated = true;
+          updateText += `> ${todo.content}`;
+          existingTodo.content = todo.content;
+        }
+        if (updated) updateTexts.push(updateText);
       } else {
         // Add new todo
         state.todos.push(todo);
-        newCount++;
+        newTexts.push(`Added ${todo.id} ${todo.content}`);
       }
     }
     return state.todos;
@@ -45,7 +55,8 @@ export function execute({ todos }: z.output<typeof inputSchema>, agent: Agent): 
   const todoList = formatTodoList(updatedTodos);
 
   return {
-    message: `**Todo** Updated todo list (${newCount} new, ${updatedCount} existing)`,
+    message: `**Todo** Updated todo list (${newTexts.length} new, ${updateTexts.length} existing)`,
+    actions: [...updateTexts, ...newTexts],
     result: `Todo list updated! Current Todo list:\n${todoList}`,
   };
 }
