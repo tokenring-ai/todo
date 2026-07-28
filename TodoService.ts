@@ -1,8 +1,7 @@
 import type { Agent } from "@tokenring-ai/agent";
 import type { TokenRingService } from "@tokenring-ai/app/types";
 import deepClone from "@tokenring-ai/utility/object/deepClone";
-import type { z } from "zod";
-import { TodoAgentConfigSchema, type TodoConfigSchema } from "./schema.ts";
+import { TodoAgentConfigSchema, type TodoConfig, TodoConfigSchema } from "./schema.ts";
 import { TodoState } from "./state/todoState.ts";
 
 /**
@@ -12,7 +11,15 @@ export default class TodoService implements TokenRingService {
   readonly name = "TodoService";
   description = "Manages todo lists for agents with add, complete, delete, and list operations";
 
-  constructor(readonly options: z.output<typeof TodoConfigSchema>) {}
+  private options = TodoConfigSchema.parse({});
+
+  constructor(options?: TodoConfig) {
+    if (options) this.options = options;
+  }
+
+  reconfigure(options: TodoConfig): void {
+    this.options = options;
+  }
 
   attach(agent: Agent) {
     // Merge service defaults with agent-specific config

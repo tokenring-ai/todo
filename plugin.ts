@@ -20,17 +20,14 @@ export default {
   displayName: "Todo List",
   version: packageJSON.version,
   description: packageJSON.description,
-  install(app, config) {
-    // Add services
-    app.addServices(new TodoService(config.todo));
+  install(app) {
+    app.addServices(new TodoService());
 
-    // Register tools
     app.waitForService(ChatService, chatService => {
       chatService.addTools(...tools);
       chatService.registerContextHandlers(contextHandlers);
     });
 
-    // Register hooks with the lifecycle service
     app.waitForService(AgentLifecycleService, lifecycleService => {
       lifecycleService.addHooks(todoCompletionCheck);
     });
@@ -38,6 +35,9 @@ export default {
     app.waitForService(RpcService, rpcService => {
       rpcService.registerEndpoint(todoRPC);
     });
+  },
+  reconfigure(app, config) {
+    app.requireService(TodoService).reconfigure(config.todo);
   },
   configSchema: todoConfigSchema,
 } satisfies TokenRingPlugin<typeof todoConfigSchema>;
