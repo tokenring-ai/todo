@@ -21,10 +21,10 @@ export default {
   version: packageJSON.version,
   description: packageJSON.description,
   install(app) {
-    app.addServices(new TodoService());
+    app.addService(new TodoService());
 
     app.waitForService(ChatService, chatService => {
-      chatService.addTools(...tools);
+      chatService.addTools(tools);
       chatService.registerContextHandlers(contextHandlers);
     });
 
