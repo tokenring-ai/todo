@@ -1,6 +1,6 @@
 import type { TodoItem } from "../schema.ts";
 
-export function formatTodoList(todos: TodoItem[]): string {
+export function formatTodoList(todos: readonly TodoItem[]): string {
   // Format the todo list for the LLM
   return [
     "ID: STATUS CONTENT",

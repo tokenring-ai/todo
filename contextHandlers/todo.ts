@@ -5,6 +5,7 @@ import { formatTodoList } from "../util/todo.ts";
 
 export default function* getTodoContext({ agent }: ContextHandlerOptions): Generator<ContextItem> {
   const todoState = agent.getState(TodoState);
+  if (todoState.todos.length === 0) return;
 
   const todoList = formatTodoList(todoState.todos);
 
