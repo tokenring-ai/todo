@@ -22,7 +22,6 @@ const callbacks = [
  **${incompleteTodos.length} tasks were left on the TODO list that are still marked as incomplete.
  ${markdownList(
    incompleteTodos.map(todo => `${todo.id}: ${todo.content}`),
-   2,
  )}
  
  You need to do one of the following two things for each of the pending or in progress tasks to resolve this:
