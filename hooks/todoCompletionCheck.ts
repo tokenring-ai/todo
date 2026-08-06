@@ -20,9 +20,7 @@ const callbacks = [
 
     const message = `**AUTOMATED SYSTEM MESSAGE**
  **${incompleteTodos.length} tasks were left on the TODO list that are still marked as incomplete.
- ${markdownList(
-   incompleteTodos.map(todo => `${todo.id}: ${todo.content}`),
- )}
+ ${markdownList(incompleteTodos.map(todo => `${todo.id}: ${todo.content}`))}
  
  You need to do one of the following two things for each of the pending or in progress tasks to resolve this:
  1. Complete the task and mark it as done.
