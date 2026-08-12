@@ -100,8 +100,8 @@ describe("Todo Completion Check Hook", () => {
 
       expect(mockAgent.handleInput).toHaveBeenCalled();
       const message = mockAgent.handleInput.mock.calls[0][0].message;
-      expect(message).toContain("1 remaining task(s)");
-      expect(message).toContain("1 pending");
+      expect(message).toContain("1 tasks were left on the TODO list that are still marked as incomplete");
+      expect(message).toContain("1: Task 1");
       expect(message).toContain("Task 1");
     });
 
@@ -118,8 +118,8 @@ describe("Todo Completion Check Hook", () => {
 
       expect(mockAgent.handleInput).toHaveBeenCalled();
       const message = mockAgent.handleInput.mock.calls[0][0].message;
-      expect(message).toContain("1 remaining task(s)");
-      expect(message).toContain("1 in progress");
+      expect(message).toContain("1 tasks were left on the TODO list that are still marked as incomplete");
+      expect(message).toContain("1: Task 1");
       expect(message).toContain("Task 1");
     });
 
@@ -138,17 +138,30 @@ describe("Todo Completion Check Hook", () => {
 
       expect(mockAgent.handleInput).toHaveBeenCalled();
       const message = mockAgent.handleInput.mock.calls[0][0].message;
-      expect(message).toContain("3 remaining task(s)");
-      expect(message).toContain("2 pending");
-      expect(message).toContain("1 in progress");
-      expect(message).toContain("Task 1");
-      expect(message).toContain("Task 2");
-      expect(message).toContain("Task 3");
+      expect(message).toContain("3 tasks were left on the TODO list that are still marked as incomplete");
+      expect(message).toContain("1: Task 1");
+      expect(message).toContain("2: Task 2");
+      expect(message).toContain("3: Task 3");
+      expect(message).not.toContain("4: Task 4");
+    });
+
+    it("should not treat cancelled todos as incomplete", async () => {
+      mockAgent.getState.mockReturnValue({
+        todos: [
+          { id: "1", content: "Task 1", status: "cancelled" },
+          { id: "2", content: "Task 2", status: "completed" },
+        ],
+      });
+
+      const hook = todoCompletionCheckHook.callbacks[0]!;
+      await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
+
+      expect(mockAgent.handleInput).not.toHaveBeenCalled();
     });
   });
 
   describe("Message Formatting", () => {
-    it("should format pending todos with correct emoji", async () => {
+    it("should list incomplete todos by id and content", async () => {
       mockAgent.getState.mockReturnValue({
         todos: [{ id: "1", content: "Pending task", status: "pending" }],
       });
@@ -157,10 +170,11 @@ describe("Todo Completion Check Hook", () => {
       await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
 
       const message = mockAgent.handleInput.mock.calls[0][0].message;
-      expect(message).toContain("📝");
+      expect(message).toContain("1: Pending task");
+      expect(message).toContain("**AUTOMATED SYSTEM MESSAGE**");
     });
 
-    it("should format in_progress todos with correct emoji", async () => {
+    it("should list in_progress todos by id and content", async () => {
       mockAgent.getState.mockReturnValue({
         todos: [{ id: "1", content: "In progress task", status: "in_progress" }],
       });
@@ -169,10 +183,10 @@ describe("Todo Completion Check Hook", () => {
       await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
 
       const message = mockAgent.handleInput.mock.calls[0][0].message;
-      expect(message).toContain("🔄");
+      expect(message).toContain("1: In progress task");
     });
 
-    it("should include instruction to complete tasks", async () => {
+    it("should include instructions to complete or cancel tasks", async () => {
       mockAgent.getState.mockReturnValue({
         todos: [{ id: "1", content: "Task 1", status: "pending" }],
       });
@@ -181,7 +195,26 @@ describe("Todo Completion Check Hook", () => {
       await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
 
       const message = mockAgent.handleInput.mock.calls[0][0].message;
-      expect(message).toContain("Please complete the remaining tasks on your todo list.");
+      expect(message).toContain("Complete the task and mark it as done");
+      expect(message).toContain("Mark the task as cancelled");
+      expect(message).toContain("This message will repeat until all tasks are completed or cancelled");
+    });
+
+    it("should not have leading spaces on content lines", async () => {
+      mockAgent.getState.mockReturnValue({
+        todos: [{ id: "1", content: "Task 1", status: "pending" }],
+      });
+
+      const hook = todoCompletionCheckHook.callbacks[0]!;
+      await hook.callback(new AfterAgentInputSuccess({} as any, {} as any), mockAgent);
+
+      const message = mockAgent.handleInput.mock.calls[0][0].message as string;
+      // Content lines (excluding markdown list items which use " - ") should not start with a space
+      const lines = message.split("\n");
+      for (const line of lines) {
+        if (line.length === 0 || line.startsWith(" - ")) continue;
+        expect(line.startsWith(" ")).toBe(false);
+      }
     });
   });
 

@@ -40,9 +40,11 @@ export class TodoState extends AgentStateSlice<typeof serializationSchema> {
     const pending = this.todos.filter(t => t.status === "pending").length;
     const inProgress = this.todos.filter(t => t.status === "in_progress").length;
     const completed = this.todos.filter(t => t.status === "completed").length;
+    const cancelled = this.todos.filter(t => t.status === "cancelled").length;
     return `Total: ${this.todos.length}
 Pending: ${pending}
 In Progress: ${inProgress}
-Completed: ${completed}`;
+Completed: ${completed}
+Cancelled: ${cancelled}`;
   }
 }

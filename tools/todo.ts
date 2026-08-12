@@ -3,7 +3,7 @@ import type { TokenRingToolDefinition, TokenRingToolResult } from "@tokenring-ai
 import { z } from "zod";
 import { TodoStatusSchema } from "../schema.ts";
 import { TodoState } from "../state/todoState.ts";
-import { formatTodoList } from "../util/todo.ts";
+import { formatTodoList, generateUniqueId } from "../util/todo.ts";
 
 const name = "todo";
 const displayName = "Todo/todo";
@@ -36,9 +36,10 @@ export function execute({ todos }: z.output<typeof inputSchema>, agent: Agent): 
         }
         if (updated) updateTexts.push(updateText);
       } else {
-        // Add new todo
-        state.todos.push(todo);
-        newTexts.push(`Added ${todo.id} ${todo.content}`);
+        // Add new todo with a guaranteed-unique id (prefers caller id when free)
+        const newTodo = { ...todo, id: generateUniqueId(state.todos, todo.id) };
+        state.todos.push(newTodo);
+        newTexts.push(`Added ${newTodo.id} ${newTodo.content}`);
       }
     }
     return state.todos;
